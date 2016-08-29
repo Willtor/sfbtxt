@@ -3,7 +3,7 @@ TARGET = sfbtxt
 
 GCC = gcc
 
-SRC = font.c
+SRC = font.c main.c
 OBJ = $(SRC:.c=.o)
 
 FONTS = fonts/description.txt
@@ -11,6 +11,7 @@ FONTS = fonts/description.txt
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
+	$(GCC) -o $@ $(OBJ)
 
 %.o: %.c
 	$(GCC) -c $<
