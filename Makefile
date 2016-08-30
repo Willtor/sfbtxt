@@ -6,12 +6,14 @@ GCC = gcc
 SRC = font.c main.c
 OBJ = $(SRC:.c=.o)
 
+LIBS = -lpng
+
 FONTS = fonts/description.txt
 
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(GCC) -o $@ $(OBJ)
+	$(GCC) -o $@ $(OBJ) $(LIBS)
 
 %.o: %.c
 	$(GCC) -c $<
