@@ -3,6 +3,7 @@
 #include <malloc.h>
 #include <png.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef enum alignment_t alignment_t;
 
@@ -33,10 +34,35 @@ extern font_t description;
  */
 void process_args (config_t *config, int argc, char *argv[])
 {
+    int i;
+
+    // Defaults.
     config->font = &description;
-    config->output_file = "t.png";
+    config->output_file = NULL; // User must specify an output file.
     config->input = stdin;
     config->alignment = ALIGN_LEFT;
+
+    for (i = 1; i < argc; ++i) {
+        if (argv[i][0] == '-') {
+            // Switch.
+            // FIXME: Implement.
+        } else {
+            // Output file.
+            if (NULL != config->output_file) {
+                fprintf(stderr,
+                        "Specified multiple output files:\n\"%s\", \"%s\"\n"
+                        "Use --help for options.\n",
+                        config->output_file, argv[i]);
+                exit(1);
+            }
+            config->output_file = argv[i];
+        }
+    }
+
+    if (NULL == config->output_file) {
+        fprintf(stderr, "Need an output file.  Use --help for options.\n");
+        exit(1);
+    }
 }
 
 /** Reverse a linked list of lines.
