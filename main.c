@@ -4,6 +4,7 @@
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum alignment_t alignment_t;
 
@@ -30,6 +31,18 @@ struct line_t
 
 extern font_t description;
 
+/** Print a usage message and exit.
+ */
+void usage ()
+{
+    fprintf(stderr, "usage: sfbtxt [options] <outfile.png>\n");
+    fprintf(stderr, "  options\n");
+    fprintf(stderr,
+            "  -i <infile.txt>: Source of text.  If no file is specified,\n"
+            "                   text is received from stdin.\n");
+    exit(0);
+}
+
 /** Process the arguments and populate the config structure.
  */
 void process_args (config_t *config, int argc, char *argv[])
@@ -45,7 +58,30 @@ void process_args (config_t *config, int argc, char *argv[])
     for (i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             // Switch.
-            // FIXME: Implement.
+            if (0 == strcmp(argv[i], "--help")
+                || 0 == strcmp(argv[i], "-help")) {
+                usage();
+            } else if (0 == strcmp(argv[i], "-i")) {
+                ++i;
+                if (i >= argc || argv[i][0] == '-') {
+                    fprintf(stderr,
+                            "The -i flag requires an argument.\n"
+                            "Use --help for options.\n");
+                    exit(1);
+                }
+                config->input = fopen(argv[i], "r");
+                if (NULL == config->input) {
+                    fprintf(stderr, "Unable to open the input file: %s\n",
+                            argv[i]);
+                    exit(1);
+                }
+            } else {
+                fprintf(stderr,
+                        "Unrecognized option: %s.\n"
+                        "Use --help for options.\n",
+                        argv[i]);
+                exit(1);
+            }
         } else {
             // Output file.
             if (NULL != config->output_file) {
