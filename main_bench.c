@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
+size_t nbCar = 0;
 
 typedef enum alignment_t alignment_t;
 
@@ -178,6 +179,7 @@ void statistics (int *width, int *height, line_t *lines, font_t *font)
     while (lines) {
         int i;
         for (i = 0; lines->text[i] != '\0'; ++i) {
+	    nbCar++;
             char c = lines->text[i];
             assert((int)c < 128);
             character_t *character = font->charset[(int)c];
@@ -193,6 +195,7 @@ void statistics (int *width, int *height, line_t *lines, font_t *font)
         lines = lines->next;
     }
 
+    //printf("\nNombre de car : %ld \n", nbCar);
 }
 
 /** Paint a set of pixels given by the "pixels" bitmap to the current row.
@@ -297,6 +300,9 @@ int main (int argc, char *argv[])
 
     process_args(&config, argc, argv);
 
+    // Commence l'enregistrement du temps 
+    struct timespec tstart={0,0}, tend={0,0};
+
 
     input = read_text(config.input);
 
@@ -311,11 +317,18 @@ int main (int argc, char *argv[])
         return 1;
     }
 
+    // Commence l'enregistrement du temps 
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
     if (0 != generate_png(output, width, height, input, config.font)) {
         fprintf(stderr, "Failed to generate the image.\n");
         return 1;
     }
 
+    // Fini l'enregistrement du temps et affiche le résultat
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+    double time = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
+    double timeParCar = (time * 1000 * 1000/nbCar);
+    printf("Temps total : %.5f seconds\nTemps par caractere : %.5f nano secondes\n", time ,timeParCar  );
 
 
     fclose(output);
