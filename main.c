@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
+
 typedef enum alignment_t alignment_t;
 
 enum alignment_t { ALIGN_LEFT, ALIGN_RIGHT, ALIGN_CENTER };
@@ -172,6 +173,7 @@ line_t *read_text (FILE *fp)
  */
 void statistics (int *width, int *height, line_t *lines, font_t *font)
 {
+
     *width = *height = 0;
     while (lines) {
         int i;
@@ -190,6 +192,7 @@ void statistics (int *width, int *height, line_t *lines, font_t *font)
 
         lines = lines->next;
     }
+
 }
 
 /** Paint a set of pixels given by the "pixels" bitmap to the current row.
@@ -197,8 +200,8 @@ void statistics (int *width, int *height, line_t *lines, font_t *font)
 void paint_pixels (unsigned long long pixels, png_byte *row, int width)
 {
     for ( ; width > 0; --width) {
-        int on = ((pixels >> (width - 1)) & 0x1ULL) == 1;
-        unsigned char byte = on ? (unsigned char)0 : (unsigned char)255;
+        int on = ((pixels >> (width - 1)) & 0x1ULL) != 1;
+        unsigned char byte = 255*on;
         row[0] = byte;
         row[1] = byte;
         row[2] = byte;
@@ -235,8 +238,10 @@ int generate_png (FILE *fp, int width, int height, line_t *lines,
     rows = (png_byte**)png_malloc(png_ptr, height * sizeof(png_byte*));
     y = 0;
     curr = lines;
+    
     while (curr) {
         int offset_y;
+
         for (offset_y = 0; offset_y < curr->height; ++offset_y, ++y) {
             int i;
             rows[y] = (png_byte*)png_malloc(png_ptr, width * 4);
@@ -257,8 +262,12 @@ int generate_png (FILE *fp, int width, int height, line_t *lines,
         curr = curr->next;
     }
 
+
     png_init_io(png_ptr, fp);
+
     png_set_rows(png_ptr, info_ptr, rows);
+   
+     // https://stackoverflow.com/questions/7942635/write-png-quickly
     png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
 
     for (y = 0; y < height; ++y) png_free(png_ptr, rows[y]);
@@ -288,18 +297,27 @@ int main (int argc, char *argv[])
 
     process_args(&config, argc, argv);
 
+
     input = read_text(config.input);
+
     statistics(&width, &height, input, config.font);
 
     output = fopen(config.output_file, "wb");
+
+
+
     if (NULL == output) {
         fprintf(stderr, "Unable to write to file: %s\n", config.output_file);
         return 1;
     }
+
     if (0 != generate_png(output, width, height, input, config.font)) {
         fprintf(stderr, "Failed to generate the image.\n");
         return 1;
     }
+
+
+
     fclose(output);
     cleanup_lines(input);
 
